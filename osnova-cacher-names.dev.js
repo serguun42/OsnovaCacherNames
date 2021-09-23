@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Osnova Cacher Names
-// @version     3.2.2-A (2021-09-20)
+// @version     3.2.3-A (2021-09-23)
 // @author      serguun42, qq
 // @description Previous user's names from TJ Cache by qq (Rebuild by serguun42)
 // @homepage    https://tjournal.ru/tag/osnovanamescacher
@@ -23,7 +23,7 @@ const
 	SITE = window.location.hostname.split(".")[0],
 	RESOURCES_DOMAIN = "serguun42.ru",
 	API_URL = `https://names-cacher.serguun42.ru/${SITE}`,
-	VERSION = "3.2.2";
+	VERSION = "3.2.3";
 
 
 
@@ -636,6 +636,9 @@ const usersObserver = new MutationObserver((mutations) => {
 			
 
 			if ([
+				"comment",
+				"comment__space",
+				"comment__self",
 				"comments__content",
 				"comments__item__self",
 				"comments__item__other",
