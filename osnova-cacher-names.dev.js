@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Osnova Cacher Names
-// @version     3.2.3-A (2021-09-23)
+// @version     3.2.5-A (2021-09-26)
 // @author      serguun42, qq
 // @description Previous user's names from TJ Cache by qq (Rebuild by serguun42)
 // @homepage    https://tjournal.ru/tag/osnovanamescacher
@@ -23,7 +23,7 @@ const
 	SITE = window.location.hostname.split(".")[0],
 	RESOURCES_DOMAIN = "serguun42.ru",
 	API_URL = `https://names-cacher.serguun42.ru/${SITE}`,
-	VERSION = "3.2.3";
+	VERSION = "3.2.5";
 
 
 
@@ -112,7 +112,7 @@ const mainObserber = new MutationObserver((mutations) => {
 			if (foundNode && waitingElemSelector.resolver) {
 				waitingElemSelector.resolver(foundNode);
 				waitingElemsArr.splice(waitingElemIndex, 1);
-			};
+			}
 		});
 	});
 });
@@ -204,21 +204,21 @@ const GlobalWaitForElement = iKey => {
 				if (foundQueueItemIndex > -1) {
 					observerQueue.splice(foundQueueItemIndex, 1);
 
-					let intervalCounter = 0;					
+					let intervalCounter = 0;
 					const backupInterval = GlobalSetInterval(() => {
 						const found = QS(iQuery);
 
 						if (found) {
 							GlobalClearInterval(backupInterval);
 							return resolve(found);
-						};
+						}
 
 						if (++intervalCounter > 50) {
 							GlobalClearInterval(backupInterval);
 							return resolve(null);
 						}
 					}, 300);
-				};
+				}
 			}, 1e3);
 		});
 	};
@@ -268,7 +268,7 @@ GlobalWaitForElement("body").then(() => {
 			  container.dataset.author = "serguun42";
 
 		document.body.appendChild(container);
-	};
+	}
 });
 
 GlobalAddStyle(`https://${RESOURCES_DOMAIN}/tampermonkey/osnova-cacher-names/osnova-cacher-names.css`, 0, "osnova");
@@ -287,30 +287,32 @@ if (RESOURCES_DOMAIN === "localhost") {
 		CACHER_NAMES_USERS_NICKS,
 		GlobalWaitForElement,
 		observerQueue,
-		GetIntervals: () => ({createdIntervals, deletedIntervals})
+		GetIntervals: () => ({ createdIntervals, deletedIntervals })
 	}
-};
+}
 
 const GlobalSeeUnseenUsers = () => {
 	const usersIDs = new Set();
 
 
 	const comments = Array.from(
-		QSA(`.comments__content .comments__item[data-user_id], .comments__pinned .comments__item[data-user_id], .comments__content .comment[data-user_id]`))
-			.filter((comment) => {
-				if (!(comment.dataset && comment.dataset.user_id)) return false;
+		QSA(`.comment[data-user_id]`))
+		.filter((comment) => {
+			if (!(comment.dataset && comment.dataset.user_id)) return false;
 
-				usersIDs.add(comment.dataset.user_id);
+			usersIDs.add(comment.dataset.user_id);
 
-				const commentSpaceWrapper = comment.querySelector(".comments__item__space") || comment.querySelector(".comment__author"),
-					  userLink = commentSpaceWrapper?.querySelector(".comments__item__user") || commentSpaceWrapper?.querySelector(".comment-user");
+			const commentSpaceWrapper = comment.querySelector(".comment__space:first-of-type > .comment__self"),
+				  userLink = commentSpaceWrapper?.querySelector(".comment-user");
 
-				if (userLink && userLink.dataset) {
-					userLink.dataset.skipName = (userLink.querySelector(".user_name") || userLink.querySelector(".comment-user__name"))?.innerText;
-				};
+			if (!commentSpaceWrapper) return false;
+			if (!userLink) return false;
+			if (!userLink.dataset) return false;
 
-				return true;
-			}
+			userLink.dataset.skipName = userLink.querySelector(".comment-user__name")?.innerText;
+
+			return true;
+		}
 	);
 
 	const authors = Array.from(
@@ -329,7 +331,7 @@ const GlobalSeeUnseenUsers = () => {
 				if (authorElem.dataset) {
 					authorElem.dataset.userId = userId;
 					authorElem.dataset.skipName = authorElem?.querySelector(".content-header-author__name")?.innerText;
-				};
+				}
 
 				return true;
 			}
@@ -351,7 +353,7 @@ const GlobalSeeUnseenUsers = () => {
 				if (ratingElem.dataset) {
 					ratingElem.dataset.userId = userId;
 					ratingElem.dataset.skipName = ratingElem?.querySelector(".subsite__name")?.innerText;
-				};
+				}
 
 				return true;
 			}
@@ -362,8 +364,8 @@ const GlobalSeeUnseenUsers = () => {
 		if (!(window.location.pathname.match(/\/u\/(\d+)(-[^\/]+)?\/(\d+)/))) {
 			profileID = window.location.pathname.match(/\/u\/(\d+)(-)?/)[1];
 			usersIDs.add(profileID);
-		};
-	};
+		}
+	}
 
 	const profileName = QS(".v-header-title__name")?.innerText;
 
@@ -471,7 +473,7 @@ const GlobalSeeUnseenUsers = () => {
 			propsToFix.top = top + "px";
 			propsToFix.left = "16px";
 			propsToFix.maxWidth = "calc(100vw - 32px)";
-		};
+		}
 
 		if (right > window.innerWidth - 16) {
 			fixingFlag = true;
@@ -479,14 +481,14 @@ const GlobalSeeUnseenUsers = () => {
 			propsToFix.left = "unset";
 			propsToFix.right = "16px";
 			propsToFix.maxWidth = "calc(100vw - 32px)";
-		};
+		}
 
 		if (fixingFlag) {
 			list.classList.add("site-names__list--compressed");
 
 			for (let key in propsToFix)
 				list.style[key] = propsToFix[key];
-		};
+		}
 	};
 
 
@@ -536,16 +538,14 @@ const GlobalSeeUnseenUsers = () => {
 		Object.keys(usersFromAPI).forEach((userID) => CACHER_NAMES_USERS_NICKS[userID] = usersFromAPI[userID]);
 
 
-
-		// Comments
 		comments.forEach((commentElem) => {
 			if (!commentElem.dataset.user_id) return;
 			if (!CACHER_NAMES_USERS_NICKS[commentElem.dataset.user_id]) return;
 			if (!CACHER_NAMES_USERS_NICKS[commentElem.dataset.user_id].length) return;
 
 			const
-				commentSpaceWrapper = commentElem.querySelector(".comments__item__space") || commentElem.querySelector(".comment__author"),
-				userLink = commentSpaceWrapper.querySelector(".comments__item__user") || commentSpaceWrapper.querySelector(".comment-user"),
+				commentSpaceWrapper = commentElem?.querySelector(".comment__space:first-of-type > .comment__self .comment__author"),
+				userLink = commentSpaceWrapper?.querySelector(".comment-user"),
 				wrapper = LocalCreateTooltip(commentElem.dataset.user_id, userLink?.dataset?.skipName);
 
 			if (!userLink) return;
@@ -559,7 +559,6 @@ const GlobalSeeUnseenUsers = () => {
 		});
 
 
-		// Posts' authors
 		authors.forEach((authorElem) => {
 			if (!authorElem.dataset) return;
 			if (!authorElem.dataset.userId) return;
@@ -579,7 +578,6 @@ const GlobalSeeUnseenUsers = () => {
 		});
 
 
-		// Rating's users
 		ratings.forEach((ratingElem) => {
 			if (!ratingElem.dataset) return;
 			if (!ratingElem.dataset.userId) return;
@@ -599,7 +597,6 @@ const GlobalSeeUnseenUsers = () => {
 		});
 
 
-		// Profile Page
 		if (profileID) {
 			if (!CACHER_NAMES_USERS_NICKS[profileID]) return;
 			if (!CACHER_NAMES_USERS_NICKS[profileID].length) return;
@@ -619,7 +616,7 @@ const GlobalSeeUnseenUsers = () => {
 
 				LocalCorrectWrapper(wrapper);
 			});
-		};
+		}
 	});
 };
 
@@ -633,9 +630,9 @@ const usersObserver = new MutationObserver((mutations) => {
 		mutatedNodes.forEach((mutatedNode) => {
 			if (!(mutatedNode instanceof HTMLElement)) return;
 
-			
-
 			if ([
+				"comments",
+				"comments__body",
 				"comment",
 				"comment__space",
 				"comment__self",
@@ -643,15 +640,13 @@ const usersObserver = new MutationObserver((mutations) => {
 				"comments__item__self",
 				"comments__item__other",
 				"comments__item__children",
-				"comments__item__space",
 				"v-header-title",
 				"content-header-author__name",
 				"content-header--short",
 				"feed__item",
 				"l-page"
-			].some((checkingClass) => mutatedNode.classList.contains(checkingClass))) {
+			].some((checkingClass) => mutatedNode.classList.contains(checkingClass)))
 				GlobalSeeUnseenUsers();
-			};
 		});
 	});
 });
@@ -672,18 +667,7 @@ const GlobalTrackingPageProcedure = () => {
 
 		lastURL = window.location.pathname;
 
-
-		const contentID = parseInt(/^\/(?:u|s)\//.test(window.location.pathname) ? window.location.pathname.match(/^\/(?:u|s)\/[^\/]+\/(\d+)/)?.[1] : window.location.pathname.match(/^\/\w+\/(\d+)/)?.[1]);
-
-		if (contentID)
-			GlobalWaitForElement(".comments__body").then((commnetsBody) => {
-				if (commnetsBody) GlobalSeeUnseenUsers();
-			});
-
-
-		if (!(/^\/all/.test(window.location.pathname)) && !(/^\/new/.test(window.location.pathname))) {
-			if (!contentID) GlobalSeeUnseenUsers();
-		}
+		GlobalSeeUnseenUsers();
 	}, 2e3);
 };
 
