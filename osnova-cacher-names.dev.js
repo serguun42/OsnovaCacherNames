@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Osnova Cacher Names
-// @version     3.2.5-A (2021-09-26)
+// @version     3.2.6-A (2021-10-12)
 // @author      serguun42, qq
 // @description Previous user's names from TJ Cache by qq (Rebuild by serguun42)
 // @homepage    https://tjournal.ru/tag/osnovanamescacher
@@ -23,7 +23,7 @@ const
 	SITE = window.location.hostname.split(".")[0],
 	RESOURCES_DOMAIN = "serguun42.ru",
 	API_URL = `https://names-cacher.serguun42.ru/${SITE}`,
-	VERSION = "3.2.5";
+	VERSION = "3.2.6";
 
 
 
@@ -608,10 +608,11 @@ const GlobalSeeUnseenUsers = () => {
 					userHeaderAction = QS(".v-header__actions"),
 					userHeaderActionsButtons = QSA(".v-header__actions > .v-button, .v-header__actions > .v-subscribe-button");
 
-				if (userHeaderAction.classList.contains("s42-user-cacher-names-seen")) return;
-				userHeaderAction.classList.add("s42-user-cacher-names-seen");
+				if (!userHeaderAction || !userHeaderActionsButtons) return;
+				if (userHeaderAction?.classList?.contains("s42-user-cacher-names-seen")) return;
+				userHeaderAction?.classList?.add("s42-user-cacher-names-seen");
 
-				if (!wrapper || !userHeaderAction || !userHeaderActionsButtons || !userHeaderActionsButtons.length) return;
+				if (!wrapper || !userHeaderActionsButtons.length) return;
 				userHeaderActionsButtons[userHeaderActionsButtons.length - 1].after(wrapper);
 
 				LocalCorrectWrapper(wrapper);
