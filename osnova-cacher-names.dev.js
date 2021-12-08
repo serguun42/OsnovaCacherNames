@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Osnova Cacher Names
-// @version     3.2.6-A (2021-10-12)
+// @version     3.2.7-A (2021-12-08)
 // @author      serguun42, qq
 // @description Previous user's names from TJ Cache by qq (Rebuild by serguun42)
 // @homepage    https://tjournal.ru/tag/osnovanamescacher
@@ -22,8 +22,8 @@
 const
 	SITE = window.location.hostname.split(".")[0],
 	RESOURCES_DOMAIN = "serguun42.ru",
-	API_URL = `https://names-cacher.serguun42.ru/${SITE}`,
-	VERSION = "3.2.6";
+	NAMES_CACHER_API_URL = `https://names-cacher.serguun42.ru/${SITE}`,
+	VERSION = "3.2.7";
 
 
 
@@ -188,7 +188,8 @@ const GlobalWaitForElement = iKey => {
 		if (tagName) selectorForQueue.tag = tagName;
 		if (id) selectorForQueue.id = id;
 		if (className) selectorForQueue.className = className;
-		if (attributeMatch[1] && attributeMatch[2]) selectorForQueue.attribute = { name: attributeMatch[1], value: 	attributeMatch[2] };
+		if (attributeMatch[1] && attributeMatch[2])
+			selectorForQueue.attribute = { name: attributeMatch[1], value: 	attributeMatch[2] };
 
 
 		return new Promise((resolve) => {
@@ -292,82 +293,75 @@ if (RESOURCES_DOMAIN === "localhost") {
 }
 
 const GlobalSeeUnseenUsers = () => {
-	const usersIDs = new Set();
+	/** @type {Set<number>} */
+	const usersIdsSet = new Set();
 
 
-	const comments = Array.from(
-		QSA(`.comment[data-user_id]`))
+	const comments = QSA(`.comment[data-user_id]`)
 		.filter((comment) => {
-			if (!(comment.dataset && comment.dataset.user_id)) return false;
+			const userId = parseInt(comment?.dataset?.user_id);
+			if (!userId) return false;
 
-			usersIDs.add(comment.dataset.user_id);
+			usersIdsSet.add(userId);
 
-			const commentSpaceWrapper = comment.querySelector(".comment__space:first-of-type > .comment__self"),
-				  userLink = commentSpaceWrapper?.querySelector(".comment-user");
+			const userLink = comment?.querySelector(".comment__author");
 
-			if (!commentSpaceWrapper) return false;
-			if (!userLink) return false;
-			if (!userLink.dataset) return false;
+			if (!userLink?.dataset) return false;
 
-			userLink.dataset.skipName = userLink.querySelector(".comment-user__name")?.innerText;
+			userLink.dataset.skipName = userLink.innerText?.trim();
 
 			return true;
-		}
-	);
+		});
 
-	const authors = Array.from(
-		QSA(`.content-header .content-header-author[href*="/u/"]`))
-			.filter((authorElem) => {
-				if (!(
-					authorElem.getAttribute("href") &&
-					authorElem.getAttribute("href").match(/\/u\/(\d+)/) &&
-					authorElem.getAttribute("href").match(/\/u\/(\d+)/)[1]
-				)) return false;
+	const authors = QSA(`.content-header .content-header-author[href*="/u/"]`)
+		.filter((authorElem) => {
+			if (!(
+				authorElem.getAttribute("href") &&
+				authorElem.getAttribute("href").match(/\/u\/(\d+)/) &&
+				authorElem.getAttribute("href").match(/\/u\/(\d+)/)[1]
+			)) return false;
 
-				const userId = authorElem.getAttribute("href").match(/\/u\/(\d+)/)[1];
+			const userId = parseInt(authorElem.getAttribute("href").match(/\/u\/(\d+)/)[1]);
+			usersIdsSet.add(userId);
 
-				usersIDs.add(userId);
-
-				if (authorElem.dataset) {
-					authorElem.dataset.userId = userId;
-					authorElem.dataset.skipName = authorElem?.querySelector(".content-header-author__name")?.innerText;
-				}
-
-				return true;
+			if (authorElem.dataset) {
+				authorElem.dataset.userId = userId;
+				authorElem.dataset.skipName = authorElem?.querySelector(".content-header-author__name")?.innerText?.trim();
 			}
-	);
 
-	const ratings = Array.from(
-		QSA(`.table__row .table__cell .subsite[href*="/u/"]`))
-			.filter((ratingElem) => {
-				if (!(
-					ratingElem.getAttribute("href") &&
-					ratingElem.getAttribute("href").match(/\/u\/(\d+)/) &&
-					ratingElem.getAttribute("href").match(/\/u\/(\d+)/)[1]
-				)) return false;
+			return true;
+		});
 
-				const userId = ratingElem.getAttribute("href").match(/\/u\/(\d+)/)[1];
+	const ratings = QSA(`.table__row .table__cell .subsite[href*="/u/"]`)
+		.filter((ratingElem) => {
+			if (!(
+				ratingElem.getAttribute("href") &&
+				ratingElem.getAttribute("href").match(/\/u\/(\d+)/) &&
+				ratingElem.getAttribute("href").match(/\/u\/(\d+)/)[1]
+			)) return false;
 
-				usersIDs.add(userId);
+			const userId = parseInt(ratingElem.getAttribute("href").match(/\/u\/(\d+)/)[1]);
+			usersIdsSet.add(userId);
 
-				if (ratingElem.dataset) {
-					ratingElem.dataset.userId = userId;
-					ratingElem.dataset.skipName = ratingElem?.querySelector(".subsite__name")?.innerText;
-				}
-
-				return true;
+			if (ratingElem.dataset) {
+				ratingElem.dataset.userId = userId;
+				ratingElem.dataset.skipName = ratingElem?.querySelector(".subsite__name")?.innerText?.trim();
 			}
-	);
 
-	let profileID;
-	if (window.location.pathname.match(/\/u\/(\d+)/)) {
-		if (!(window.location.pathname.match(/\/u\/(\d+)(-[^\/]+)?\/(\d+)/))) {
-			profileID = window.location.pathname.match(/\/u\/(\d+)(-)?/)[1];
-			usersIDs.add(profileID);
-		}
+			return true;
+		});
+
+
+	let profileId = 0;
+	if (
+		window.location.pathname.match(/\/u\/(\d+)/) &&
+		!window.location.pathname.match(/\/u\/(\d+)(-[^\/]+)?\/(\d+)/)
+	) {
+		profileId = parseInt(window.location.pathname.match(/\/u\/(\d+)(-)?/)[1]);
+		usersIdsSet.add(profileId);
 	}
 
-	const profileName = QS(".v-header-title__name")?.innerText;
+	const profileName = QS(".v-header-title__name")?.innerText?.trim();
 
 
 	/**
@@ -397,9 +391,8 @@ const GlobalSeeUnseenUsers = () => {
 
 					namesList.classList.add("active");
 
-					if (namesList.classList.contains("site-names__list--compressed")) {
-						namesList.style.top = (e.target ? e.target.getBoundingClientRect ? e.target.getBoundingClientRect().bottom : e.clientY :  e.clientY) + "px";
-					};
+					if (namesList.classList.contains("site-names__list--compressed"))
+						namesList.style.top = `${e.target?.getBoundingClientRect?.()?.bottom || e.clientY}px`;
 
 					QSA(".site-names__list").forEach((listElem) => {
 						if (listElem != namesList)
@@ -442,7 +435,7 @@ const GlobalSeeUnseenUsers = () => {
 
 					if (namesList.classList.contains("site-names__list--compressed")) {
 						namesList.style.top = (e.target ? e.target.getBoundingClientRect ? e.target.getBoundingClientRect().bottom : e.clientY :  e.clientY) + "px";
-					};
+					}
 
 					QSA(".site-names__list").forEach((listElem) => {
 						if (listElem != namesList)
@@ -460,110 +453,96 @@ const GlobalSeeUnseenUsers = () => {
 	 * @returns {void}
 	 */
 	const LocalCorrectWrapper = wrapper => {
+		/** @type {HTMLElement} */
 		const list = wrapper.querySelector(".site-names__list");
 		if (!list) return;
 
-		let { left, right, top } = list.getBoundingClientRect();
-
-		let fixingFlag = false,
-			propsToFix = {};
+		const { left, right, top } = list.getBoundingClientRect();
 
 		if (left < 16) {
-			fixingFlag = true;
-			propsToFix.top = top + "px";
-			propsToFix.left = "16px";
-			propsToFix.maxWidth = "calc(100vw - 32px)";
+			list.classList.add("site-names__list--compressed")
+			list.style.top = `${top}px`;
+			list.style.left = "16px";
+			list.style.maxWidth = "calc(100vw - 32px)";
 		}
 
 		if (right > window.innerWidth - 16) {
-			fixingFlag = true;
-			propsToFix.top = top + "px";
-			propsToFix.left = "unset";
-			propsToFix.right = "16px";
-			propsToFix.maxWidth = "calc(100vw - 32px)";
-		}
-
-		if (fixingFlag) {
-			list.classList.add("site-names__list--compressed");
-
-			for (let key in propsToFix)
-				list.style[key] = propsToFix[key];
+			list.classList.add("site-names__list--compressed")
+			list.style.top = `${top}px`;
+			list.style.removeProperty("left");
+			list.style.right = "16px";
+			list.style.maxWidth = "calc(100vw - 32px)";
 		}
 	};
 
 
 
 	Object.keys(CACHER_NAMES_USERS_NICKS).forEach((userID) => {
-		if (usersIDs.has(userID))
-			usersIDs.delete(userID);
+		if (usersIdsSet.has(userID))
+			usersIdsSet.delete(userID);
 	});
 
 
-	usersIDs.delete(-1);
-	usersIDs.delete("-1");
+	[NaN, 0, "0", -1, "0"].forEach((wrongId) => usersIdsSet.delete(wrongId));
 
 
-	new Promise((resolve) => {
-		if (CACHER_NAMES_TIMEOUT) return resolve({});
+	new Promise((localResolve) => {
+		if (CACHER_NAMES_TIMEOUT) return localResolve({});
+		if (!usersIdsSet.size) return localResolve({});
 
-		if (usersIDs.size) {
+
+		CACHER_NAMES_TIMEOUT = true;
+		setTimeout(() => CACHER_NAMES_TIMEOUT = false, 5 * 1e3);
+
+
+		return fetch(NAMES_CACHER_API_URL, {
+			method: "POST",
+			body: JSON.stringify(Array.from(usersIdsSet))
+		}).then((res) => {
+			if (res.status === 200)
+				return res.json();
+			else
+				return Promise.reject(new Error(`Status code ${res.status} ${res.statusText}`));
+		}).then((usersFromAPI) => {
+			if (!usersFromAPI || typeof usersFromAPI !== "object")
+				return Promise.reject(new Error(`No <usersFromAPI>`));
+
+			return localResolve(usersFromAPI);
+		}).catch((e) => {
 			CACHER_NAMES_TIMEOUT = true;
-			setTimeout(() => CACHER_NAMES_TIMEOUT = false, 5 * 1e3);
+			setTimeout(() => CACHER_NAMES_TIMEOUT = false, 60 * 1e3);
 
-
-			fetch(API_URL, {
-				method: "POST",
-				body: JSON.stringify(Array.from(usersIDs))
-			}).then((res) => {
-				if (res.status === 200)
-					return res.json();
-				else
-					return Promise.reject(`Error – Status code ${res.status}`);
-			}).then((oldNamesData) => {
-				if (!oldNamesData) return Promise.reject(`Error – no <oldNamesData>!`);
-				if (typeof oldNamesData !== "object") return Promise.reject(`Error – no <oldNamesData.success>!`);
-
-
-				resolve(oldNamesData);
-			}).catch((e) => {
-				CACHER_NAMES_TIMEOUT = true;
-				setTimeout(() => CACHER_NAMES_TIMEOUT = false, 60 * 1e3);
-
-				console.warn(e);
-				resolve({});
-			});
-		} else
-			resolve({});
+			console.warn(e);
+			return localResolve({});
+		});
 	}).then(/** @param {{[userID: string]: string[]}} usersFromAPI */ (usersFromAPI) => {
 		Object.keys(usersFromAPI).forEach((userID) => CACHER_NAMES_USERS_NICKS[userID] = usersFromAPI[userID]);
 
 
-		comments.forEach((commentElem) => {
-			if (!commentElem.dataset.user_id) return;
-			if (!CACHER_NAMES_USERS_NICKS[commentElem.dataset.user_id]) return;
-			if (!CACHER_NAMES_USERS_NICKS[commentElem.dataset.user_id].length) return;
+		comments.forEach((comment) => {
+			const userId = parseInt(comment?.dataset?.user_id);
+			if (!userId) return false;
 
-			const
-				commentSpaceWrapper = commentElem?.querySelector(".comment__space:first-of-type > .comment__self .comment__author"),
-				userLink = commentSpaceWrapper?.querySelector(".comment-user"),
-				wrapper = LocalCreateTooltip(commentElem.dataset.user_id, userLink?.dataset?.skipName);
+			if (!userId) return;
+			if (!CACHER_NAMES_USERS_NICKS[userId]?.length) return;
 
-			if (!userLink) return;
-			if (userLink?.classList?.contains("s42-user-cacher-names-seen")) return;
-			userLink?.classList?.add("s42-user-cacher-names-seen");
+			const userLink = comment?.querySelector(".comment__author");
 
-			if (!wrapper || !userLink.nextSibling) return;
-			userLink.parentElement.insertBefore(wrapper, userLink.nextSibling);
+			if (!userLink?.classList) return;
+			if (userLink.classList.contains("s42-user-cacher-names-seen")) return;
+			userLink.classList.add("s42-user-cacher-names-seen");
 
+			const wrapper = LocalCreateTooltip(userId, userLink?.dataset?.skipName);
+			if (!wrapper) return;
+
+			userLink.after(wrapper);
 			LocalCorrectWrapper(wrapper);
 		});
 
 
 		authors.forEach((authorElem) => {
-			if (!authorElem.dataset) return;
-			if (!authorElem.dataset.userId) return;
-			if (!CACHER_NAMES_USERS_NICKS[authorElem.dataset.userId]) return;
-			if (!CACHER_NAMES_USERS_NICKS[authorElem.dataset.userId].length) return;
+			if (!authorElem?.dataset?.userId) return;
+			if (!CACHER_NAMES_USERS_NICKS[authorElem.dataset.userId]?.length) return;
 
 			const wrapper = LocalCreateTooltip(authorElem.dataset.userId, authorElem.dataset.skipName);
 
@@ -579,10 +558,8 @@ const GlobalSeeUnseenUsers = () => {
 
 
 		ratings.forEach((ratingElem) => {
-			if (!ratingElem.dataset) return;
-			if (!ratingElem.dataset.userId) return;
-			if (!CACHER_NAMES_USERS_NICKS[ratingElem.dataset.userId]) return;
-			if (!CACHER_NAMES_USERS_NICKS[ratingElem.dataset.userId].length) return;
+			if (!ratingElem?.dataset?.userId) return;
+			if (!CACHER_NAMES_USERS_NICKS[ratingElem.dataset.userId]?.length) return;
 
 			const wrapper = LocalCreateTooltip(ratingElem.dataset.userId, ratingElem.dataset.skipName);
 
@@ -597,14 +574,13 @@ const GlobalSeeUnseenUsers = () => {
 		});
 
 
-		if (profileID) {
-			if (!CACHER_NAMES_USERS_NICKS[profileID]) return;
-			if (!CACHER_NAMES_USERS_NICKS[profileID].length) return;
+		if (profileId) {
+			if (!CACHER_NAMES_USERS_NICKS[profileId]?.length) return;
 
 
 			GlobalWaitForElement(".v-header__actions").then(() => {
 				const
-					wrapper = LocalCreateRichTooltip(profileID, profileName),
+					wrapper = LocalCreateRichTooltip(profileId, profileName),
 					userHeaderAction = QS(".v-header__actions"),
 					userHeaderActionsButtons = QSA(".v-header__actions > .v-button, .v-header__actions > .v-subscribe-button");
 
@@ -633,10 +609,11 @@ const usersObserver = new MutationObserver((mutations) => {
 
 			if ([
 				"comments",
+				"comments__content",
 				"comments__body",
 				"comment",
 				"comment__space",
-				"comment__self",
+				"comment__content",
 				"comments__content",
 				"comments__item__self",
 				"comments__item__other",
@@ -645,6 +622,8 @@ const usersObserver = new MutationObserver((mutations) => {
 				"content-header-author__name",
 				"content-header--short",
 				"feed__item",
+				"feed__chunk",
+				"feed__container",
 				"l-page"
 			].some((checkingClass) => mutatedNode.classList.contains(checkingClass)))
 				GlobalSeeUnseenUsers();

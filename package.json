@@ -1,6 +1,6 @@
 {
   "name": "osnova-cacher-names",
-  "version": "3.2.6",
+  "version": "3.2.7",
   "description": "Userscript bringing users' previous names to Osnova platform.",
   "main": "osnova-cacher-names.js",
   "scripts": {

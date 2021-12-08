@@ -1,7 +1,13 @@
 .site-names {
 	position: relative;
-	margin-left: -12px;
+	margin-left: -4px;
 	margin-right: 15px;
+}
+
+@media (min-width: 860px) {
+	.site-names {
+		margin-left: -12px;
+	}
 }
 
 .site-names__list {
@@ -86,12 +92,29 @@
 }
 
 .content-header__info .site-names {
-	margin-left: -16px;
+	margin-left: -8px;
 }
 
-.comment__author .site-names {
+@media (min-width: 860px) {
+	.content-header__info .site-names {
+		margin-left: -16px;
+	}
+
+	.content--embed .content-header__info .site-names {
+		margin-left: -8px;
+	}
+}
+
+.comment__author + .site-names {
 	margin-left: -6px;
 	margin-right: 8px;
+}
+
+@media (min-width: 860px) {
+	.comment__author + .site-names {
+		-ms-flex-order: -2;
+		order: -2
+	}
 }
 
 .v-header__actions .site-names {
