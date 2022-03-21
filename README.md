@@ -1,8 +1,8 @@
 # Osnova Cacher Names
 Userscript bringing users' previous names to Osnova platform.
 
-## Main File
-Tampermonkey/Greasemonkey/-monkey launches `osnova-cacher-names.dev.js` (which is usually compiled/bundled with `webpack`). JS code will add custom CSS, JS (presented in this repo) and couple of elements .
+## How it works
+Core file [`src/core.js`](./src/core.js) imports necessary utils. Webpack bundles (via task `npm run build`) all javascript files in [`src`](./src) to single `build/osnova-cacher-names.user.js` (relative to root). Then this bundled file ready for _*monkey_, all [CSS and other resources](./resources) could be deployed to production server.
 
 ## Commands
 1. Install necessary dependencies – `npm i --force`
