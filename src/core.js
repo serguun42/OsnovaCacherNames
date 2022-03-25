@@ -1,5 +1,5 @@
 const { NAMES_CACHER_API_URL, RESOURCES_ROOT, SITE, VERSION } = require("./config/sites");
-const { AddStyle, WaitForElement, GEBI, QSA, QS, SetCustomInterval } = require("./util/dom");
+const { AddStyle, WaitForElement, GEBI, QSA, QS, SetCustomInterval, GR } = require("./util/dom");
 
 WaitForElement("body").then(() => {
 	if (!GEBI("container-for-custom-elements-0")) {
@@ -29,23 +29,23 @@ if (process.env.NODE_ENV === "development") {
 }
 
 /**
- * @param {String} id
- * @param {String} [skipName]
+ * @param {string} id
+ * @param {string} [skipName]
  * @returns {HTMLElement}
  */
 const CreateTooltip = (id, skipName = "") => {
 	const namesForTooltip = CACHER_NAMES_USERS_NICKS[id].filter((name) => name !== skipName);
 	if (!namesForTooltip || !namesForTooltip.length) return null;
 
-	const wrapper = document.createElement("div");
-	wrapper.className = "site-names";
+	const tooltip = document.createElement("div");
+	tooltip.className = "site-names";
 
 	const namesList = document.createElement("div");
 	namesList.className = "site-names__list";
 	namesList.innerHTML = `<b>Также известен как:</b><br>${namesForTooltip.join("<br>")}`;
 	namesList.addEventListener("click", (e) => e.stopPropagation());
 
-	wrapper.appendChild(namesList);
+	tooltip.appendChild(namesList);
 
 	const toggleButton = document.createElement("div");
 	toggleButton.className = "site-names__toggle";
@@ -62,32 +62,35 @@ const CreateTooltip = (id, skipName = "") => {
 		});
 	});
 
-	wrapper.appendChild(toggleButton);
+	tooltip.appendChild(toggleButton);
 
-	return wrapper;
+	return tooltip;
 };
 
 /**
- * @param {String} id
- * @param {String} [skipName]
+ * @param {string} id
+ * @param {string} [skipName]
+ * @param {boolean} [isTinyOnMobile]
  * @returns {HTMLElement}
  */
-const CreateRichTooltip = (id, skipName = "") => {
+const CreateBigTooltip = (id, skipName = "", isTinyOnMobile = false) => {
 	const namesForTooltip = CACHER_NAMES_USERS_NICKS[id].filter((name) => name !== skipName);
 	if (!namesForTooltip || !namesForTooltip.length) return null;
 
-	const wrapper = document.createElement("div");
-	wrapper.className = "site-names site-names--big";
+	const tooltip = document.createElement("div");
+	tooltip.className = "site-names site-names--big";
 
 	const namesList = document.createElement("div");
 	namesList.className = "site-names__list";
 	namesList.innerHTML = `<b>Также известен как:</b><br>${namesForTooltip.join("<br>")}`;
 	namesList.addEventListener("click", (e) => e.stopPropagation());
 
-	wrapper.appendChild(namesList);
+	tooltip.appendChild(namesList);
 
 	const toggleButton = document.createElement("div");
 	toggleButton.className = "v-button v-button--default v-button--size-default";
+	if (isTinyOnMobile) toggleButton.classList.add("v-button--mobile-size-tiny");
+
 	toggleButton.innerHTML = `<div class="v-button__icon"><svg height="18" width="48" class="icon icon--quote-right"><use xlink:href="#quote-right"></use></svg></div>`;
 	toggleButton.addEventListener("click", (e) => {
 		e.stopPropagation();
@@ -108,18 +111,18 @@ const CreateRichTooltip = (id, skipName = "") => {
 		});
 	});
 
-	wrapper.appendChild(toggleButton);
+	tooltip.appendChild(toggleButton);
 
-	return wrapper;
+	return tooltip;
 };
 
 /**
- * @param {HTMLElement} wrapper
+ * @param {HTMLElement} tooltip
  * @returns {void}
  */
-const CorrectWrapper = (wrapper) => {
+const CorrectTooltip = (tooltip) => {
 	/** @type {HTMLElement} */
-	const list = wrapper.querySelector(".site-names__list");
+	const list = tooltip.querySelector(".site-names__list");
 	if (!list) return;
 
 	const { left, right, top } = list.getBoundingClientRect();
@@ -269,43 +272,43 @@ const SeeUnseenUsers = () => {
 				if (userLink.classList.contains("s42-user-cacher-names-seen")) return;
 				userLink.classList.add("s42-user-cacher-names-seen");
 
-				const wrapper = CreateTooltip(userId, userLink?.dataset?.skipName);
-				if (!wrapper) return;
+				const tooltip = CreateTooltip(userId, userLink?.dataset?.skipName);
+				if (!tooltip) return;
 
-				userLink.after(wrapper);
-				CorrectWrapper(wrapper);
+				userLink.after(tooltip);
+				CorrectTooltip(tooltip);
 			});
 
 			authors.forEach((authorElem) => {
 				if (!authorElem?.dataset?.userId) return;
 				if (!CACHER_NAMES_USERS_NICKS[authorElem.dataset.userId]?.length) return;
 
-				const wrapper = CreateTooltip(authorElem.dataset.userId, authorElem.dataset.skipName);
+				const tooltip = CreateTooltip(authorElem.dataset.userId, authorElem.dataset.skipName);
 
 				if (!authorElem) return;
 				if (authorElem?.classList?.contains("s42-user-cacher-names-seen")) return;
 				authorElem?.classList?.add("s42-user-cacher-names-seen");
 
-				if (!wrapper || !authorElem.nextSibling) return;
-				authorElem.parentElement.insertBefore(wrapper, authorElem.nextSibling);
+				if (!tooltip || !authorElem.nextSibling) return;
+				authorElem.parentElement.insertBefore(tooltip, authorElem.nextSibling);
 
-				CorrectWrapper(wrapper);
+				CorrectTooltip(tooltip);
 			});
 
 			ratings.forEach((ratingElem) => {
 				if (!ratingElem?.dataset?.userId) return;
 				if (!CACHER_NAMES_USERS_NICKS[ratingElem.dataset.userId]?.length) return;
 
-				const wrapper = CreateTooltip(ratingElem.dataset.userId, ratingElem.dataset.skipName);
+				const tooltip = CreateTooltip(ratingElem.dataset.userId, ratingElem.dataset.skipName);
 
 				if (!ratingElem) return;
 				if (ratingElem?.classList?.contains("s42-user-cacher-names-seen")) return;
 				ratingElem?.classList?.add("s42-user-cacher-names-seen");
 
-				if (!wrapper || !ratingElem.querySelector(".subsite__name")) return;
-				ratingElem.after(wrapper);
+				if (!tooltip || !ratingElem.querySelector(".subsite__name")) return;
+				ratingElem.after(tooltip);
 
-				CorrectWrapper(wrapper);
+				CorrectTooltip(tooltip);
 			});
 
 			if (profileId) {
@@ -316,19 +319,19 @@ const SeeUnseenUsers = () => {
 					if (userHeaderActions?.classList?.contains("s42-user-cacher-names-seen")) return;
 					userHeaderActions?.classList?.add("s42-user-cacher-names-seen");
 
-					const wrapper = CreateRichTooltip(profileId, profileName);
-					if (!wrapper) return;
+					const tooltip = CreateBigTooltip(profileId, profileName, false);
+					if (!tooltip) return;
 
 					const etcControlButton = userHeaderActions.querySelector(".etc_control");
 					if (etcControlButton) {
-						etcControlButton.before(wrapper);
-						return CorrectWrapper(wrapper);
+						etcControlButton.before(tooltip);
+						return CorrectTooltip(tooltip);
 					}
 
 					const userHeaderActionsLastButton = Array.from(userHeaderActions.querySelectorAll(".v-button")).pop();
 					if (userHeaderActionsLastButton) {
-						userHeaderActionsLastButton.after(wrapper);
-						return CorrectWrapper(wrapper);
+						userHeaderActionsLastButton.after(tooltip);
+						return CorrectTooltip(tooltip);
 					}
 				});
 			}
@@ -341,8 +344,8 @@ const SeeUnseenUsers = () => {
 				if (subsiteCard?.classList?.contains("s42-user-cacher-names-seen")) return;
 				subsiteCard?.classList?.add("s42-user-cacher-names-seen");
 
-				const wrapper = CreateRichTooltip(subsiteCardId, subsiteCard?.innerText?.trim());
-				if (!wrapper) return;
+				const tooltip = CreateBigTooltip(subsiteCardId, subsiteCard?.innerText?.trim(), true);
+				if (!tooltip) return;
 
 
 				const subsiteCardActions = subsiteCard.querySelector(".subsite-card__actions")
@@ -351,8 +354,10 @@ const SeeUnseenUsers = () => {
 				if (!subsiteCardActions.classList.contains("subsite-card__actions"))
 					subsiteCardActions.classList.add("subsite-card__actions");
 
-				subsiteCardActions.prepend(wrapper);
-				CorrectWrapper(wrapper);
+				Array.from(subsiteCardActions.querySelectorAll(".v-button__label")).forEach((label) => GR(label));
+
+				subsiteCardActions.prepend(tooltip);
+				CorrectTooltip(tooltip);
 			}
 		}
 	);

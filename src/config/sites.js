@@ -1,4 +1,4 @@
-const VERSION = "3.4.0";
+const VERSION = "3.4.2";
 const RESOURCES_ROOT = (
 	process.env.NODE_ENV === "development" ?
 		"https://localhost/tampermonkey/osnova-cacher-names/resources/" // whatever
