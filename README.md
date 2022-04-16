@@ -2,14 +2,21 @@
 Userscript bringing users' previous names to Osnova platform.
 
 ## How it works
-Core file [`src/core.js`](./src/core.js) imports necessary utils. Webpack bundles (via task `npm run build`) all javascript files in [`src`](./src) to single `build/osnova-cacher-names.user.js` (relative to root). Then this bundled file ready for _*monkey_, all [CSS and other resources](./resources) could be deployed to production server.
+Core file [`src/core.js`](./src/core.js) imports necessary utils and modules. Webpack bundles all JS files in [`src`](./src) to single `build/osnova-cacher-names.user.js` – this bundled file is ready for use in _*monkey_.
 
-## Commands
-1. Install necessary dependencies – `npm i --force`
-1. Build userscript with webpack config – `npm run build`
+All [CSS and other resources](./resources) could be deployed to production server without any minification. For minification see `npm run resources` command.
 
-## [LICENSE – GNU GPL v3](./LICENSE)
+## Building with npm
+1. Install necessary dependencies – `npm i --production`
+2. Bundle userscript with [webpack](https://webpack.js.org/) and [serguun42-webpack-userscript](https://github.com/serguun42/serguun42-webpack-userscript) plugin – `npm run build`
+3. Minify all css with [postcss](https://github.com/postcss/postcss), [cssnano](https://cssnano.co/) and [autoprefixer](https://github.com/postcss/autoprefixer) and dump it to `build/` folder – `npm run resources`
 
-### Info
-* Updates on [TJournal](https://tjournal.ru/tag/osnovanamescacher)
-* Updates on [DTF](https://dtf.ru/tag/osnovanamescacher)
+## Development
+1. Install all dependencies – `npm i`
+2. Build userscript in [watch mode](https://webpack.js.org/configuration/watch/) – `npm run dev`
+
+## Info
+* Changelog posts on [TJournal](https://tjournal.ru/tag/osnovanamescacher)
+* Changelog posts on [DTF](https://dtf.ru/tag/osnovanamescacher)
+
+#### [License – GNU GPL v3](./LICENSE)

@@ -1,7 +1,7 @@
-const VERSION = "3.4.2";
+const VERSION = "3.5.0";
 const RESOURCES_ROOT = (
 	process.env.NODE_ENV === "development" ?
-		"https://localhost/tampermonkey/osnova-cacher-names/resources/" // whatever
+		"https://localhost/tampermonkey/osnova-cacher-names/build/" // whatever
 	:
 		"https://serguun42.ru/tampermonkey/osnova-cacher-names/"
 );

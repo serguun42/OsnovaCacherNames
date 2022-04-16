@@ -15,12 +15,12 @@ AddStyle(`${RESOURCES_ROOT}osnova-cacher-names.css`, 0, "osnova");
 
 /** @type {{[userID: string]: string[]}} */
 const CACHER_NAMES_USERS_NICKS = {};
-let CACHER_NAMES_TIMEOUT = false;
+let cacherNamesFetchTimeout = false;
 
 if (process.env.NODE_ENV === "development") {
 	window.CACHER_NAMES = {
 		get CACHER_NAMES_TIMEOUT() {
-			return CACHER_NAMES_TIMEOUT;
+			return cacherNamesFetchTimeout;
 		},
 		get CACHER_NAMES_USERS_NICKS() {
 			return CACHER_NAMES_USERS_NICKS;
@@ -162,17 +162,20 @@ const SeeUnseenUsers = () => {
 		return true;
 	});
 
-	const authors = QSA(`.content-header .content-header-author[href*="/u/"]`).filter((authorElem) => {
+	const authors = QSA(
+		`.content-header .content-header-author[href*="/u/"],
+		.content-header .content-header-author[href*="/s/"]`
+	).filter((authorElem) => {
 		if (
 			!(
 				authorElem.getAttribute("href") &&
-				authorElem.getAttribute("href").match(/\/u\/(\d+)/) &&
-				authorElem.getAttribute("href").match(/\/u\/(\d+)/)[1]
+				authorElem.getAttribute("href").match(/\/[us]\/(\d+)/) &&
+				authorElem.getAttribute("href").match(/\/[us]\/(\d+)/)[1]
 			)
 		)
 			return false;
 
-		const userId = parseInt(authorElem.getAttribute("href").match(/\/u\/(\d+)/)[1]);
+		const userId = parseInt(authorElem.getAttribute("href").match(/\/[us]\/(\d+)/)[1]);
 		usersIdsSet.add(userId);
 
 		if (authorElem.dataset) {
@@ -183,17 +186,20 @@ const SeeUnseenUsers = () => {
 		return true;
 	});
 
-	const ratings = QSA(`.table__row .table__cell .subsite[href*="/u/"]`).filter((ratingElem) => {
+	const ratings = QSA(
+		`.table__row .table__cell .subsite[href*="/u/"],
+		.table__row .table__cell .subsite[href*="/s/"]`
+	).filter((ratingElem) => {
 		if (
 			!(
 				ratingElem.getAttribute("href") &&
-				ratingElem.getAttribute("href").match(/\/u\/(\d+)/) &&
-				ratingElem.getAttribute("href").match(/\/u\/(\d+)/)[1]
+				ratingElem.getAttribute("href").match(/\/[us]\/(\d+)/) &&
+				ratingElem.getAttribute("href").match(/\/[us]\/(\d+)/)[1]
 			)
 		)
 			return false;
 
-		const userId = parseInt(ratingElem.getAttribute("href").match(/\/u\/(\d+)/)[1]);
+		const userId = parseInt(ratingElem.getAttribute("href").match(/\/[us]\/(\d+)/)[1]);
 		usersIdsSet.add(userId);
 
 		if (ratingElem.dataset) {
@@ -205,9 +211,9 @@ const SeeUnseenUsers = () => {
 	});
 
 	const profileId = (
-		window.location.pathname.match(/\/u\/(\d+)/) &&
-		!window.location.pathname.match(/\/u\/(\d+)(-[^\/]+)?\/(\d+)/)
-		? parseInt(window.location.pathname.match(/\/u\/(\d+)?/)[1]) : 0
+		window.location.pathname.match(/\/[us]\/(\d+)/) &&
+		!window.location.pathname.match(/\/[us]\/(\d+)(-[^\/]+)?\/(\d+)/)
+		? parseInt(window.location.pathname.match(/\/[us]\/(\d+)?/)[1]) : 0
 	);
 
 	if (profileId) usersIdsSet.add(profileId);
@@ -217,7 +223,7 @@ const SeeUnseenUsers = () => {
 	const subsiteCardId = parseInt(new URL(
 		QS(".subsite-card__author-info a[href].subsite-card-title__item")?.getAttribute("href") || "",
 		location.origin
-	).pathname.match(/\/u\/(\d+)/)?.[1]) || 0;
+	).pathname.match(/\/[us]\/(\d+)/)?.[1]) || 0;
 	if (subsiteCardId) usersIdsSet.add(subsiteCardId);
 
 
@@ -228,11 +234,11 @@ const SeeUnseenUsers = () => {
 	[NaN, 0, "0", -1, "-1"].forEach((wrongId) => usersIdsSet.delete(wrongId));
 
 	new Promise((resolve) => {
-		if (CACHER_NAMES_TIMEOUT) return resolve({});
+		if (cacherNamesFetchTimeout) return resolve({});
 		if (!usersIdsSet.size) return resolve({});
 
-		CACHER_NAMES_TIMEOUT = true;
-		setTimeout(() => (CACHER_NAMES_TIMEOUT = false), 5 * 1e3);
+		cacherNamesFetchTimeout = true;
+		setTimeout(() => (cacherNamesFetchTimeout = false), 5 * 1e3);
 
 		return fetch(NAMES_CACHER_API_URL, {
 			method: "POST",
@@ -249,8 +255,8 @@ const SeeUnseenUsers = () => {
 				return resolve(usersFromAPI);
 			})
 			.catch((e) => {
-				CACHER_NAMES_TIMEOUT = true;
-				setTimeout(() => (CACHER_NAMES_TIMEOUT = false), 60 * 1e3);
+				cacherNamesFetchTimeout = true;
+				setTimeout(() => (cacherNamesFetchTimeout = false), 60 * 1e3);
 
 				console.warn(e);
 				return resolve({});
