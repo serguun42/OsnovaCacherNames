@@ -1,22 +1,29 @@
 const { resolve } = require('path');
 const { DefinePlugin } = require('webpack');
 const WebpackUserscriptPlugin = require('@serguun42/webpack-userscript-plugin');
+const USERSCRIPT_HEADERS = require('./src/config/userscript.json');
+const { VERSION, RESOURCES_ROOT } = require('./src/config/sites.js');
 
 const PRODUCTION = process.argv[process.argv.indexOf('--env') + 1] !== 'development';
-const USERSCRIPT_HEADERS = require('./src/config/userscript.json');
+const BUILD_DATE = new Date().toISOString().split('T')[0];
 
-if (!PRODUCTION) {
+if (PRODUCTION) {
+  USERSCRIPT_HEADERS.version = `${VERSION} (${BUILD_DATE})`;
+  USERSCRIPT_HEADERS.updateURL = `${RESOURCES_ROOT}osnova-cacher-names.meta.js`;
+  USERSCRIPT_HEADERS.downloadURL = `${RESOURCES_ROOT}osnova-cacher-names.user.js`;
+} else {
   USERSCRIPT_HEADERS.name += ' (DEV)';
+  USERSCRIPT_HEADERS.version = VERSION;
   delete USERSCRIPT_HEADERS.downloadURL;
   delete USERSCRIPT_HEADERS.updateURL;
 }
 
-/** @type {import("webpack").Configuration} */
+/** @type {import('webpack').Configuration} */
 module.exports = {
   entry: resolve('src', 'core.js'),
   output: {
     filename: 'osnova-cacher-names.user.js',
-    path: resolve('build'),
+    path: resolve(PRODUCTION ? 'build' : 'dev'),
   },
   plugins: [
     new DefinePlugin({
@@ -24,7 +31,7 @@ module.exports = {
     }),
     new WebpackUserscriptPlugin({
       headers: USERSCRIPT_HEADERS,
-      metajs: true,
+      metajs: PRODUCTION,
     }),
   ],
   module: {

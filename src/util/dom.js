@@ -119,30 +119,31 @@ const INTERVALS_COUNTERS = {
 };
 
 if (process.env.NODE_ENV === 'development')
-  window.S42_INTERVALS_COUNTERS = () =>
+  window.S42_INTERVALS_COUNTERS = () => {
     // eslint-disable-next-line no-console
     console.warn(`INTERVALS_COUNTERS: ${JSON.stringify(INTERVALS_COUNTERS, false, '\t')}`);
+  };
 
 /**
- * @param {() => void} iCallback
- * @param {number} iDelay
+ * @param {() => void} callback
+ * @param {number} delay
  * @returns {number}
  */
-const SetCustomInterval = (iCallback, iDelay) => {
-  if (!iCallback || !iDelay) return -1;
+const SetCustomInterval = (callback, delay) => {
+  if (!callback || !delay) return -1;
 
   ++INTERVALS_COUNTERS.created;
-  return setInterval(iCallback, iDelay);
+  return setInterval(callback, delay);
 };
 
 /**
- * @param {number} iIntervalID
+ * @param {number} intervalID
  */
-const ClearCustomInterval = (iIntervalID) => {
-  if (iIntervalID < 0) return;
+const ClearCustomInterval = (intervalID) => {
+  if (intervalID < 0) return;
 
   try {
-    clearInterval(iIntervalID);
+    clearInterval(intervalID);
     ++INTERVALS_COUNTERS.deleted;
   } catch (e) {
     // eslint-disable-next-line no-console
@@ -151,12 +152,12 @@ const ClearCustomInterval = (iIntervalID) => {
 };
 
 /**
- * @param {string | ObserverQueueItem} iKey
- * @param {false | Promise} [iWaitAlways=false]
+ * @param {string | ObserverQueueItem} key
+ * @param {Promise} [waitAlways]
  * @returns {Promise<HTMLElement>}
  */
-const WaitForElement = (iKey, iWaitAlways = false) => {
-  const existing = QS(iKey);
+const WaitForElement = (key, waitAlways) => {
+  const existing = QS(key);
   if (existing) return Promise.resolve(existing);
 
   /**
@@ -225,55 +226,54 @@ const WaitForElement = (iKey, iWaitAlways = false) => {
             return;
           }
 
-          if (++intervalCounter > 50 && !iWaitAlways) {
+          if (++intervalCounter > 50 && !waitAlways) {
             ClearCustomInterval(backupInterval);
             resolve(null);
             return;
           }
 
-          if (iWaitAlways && iWaitAlways instanceof Promise)
-            iWaitAlways
+          if (waitAlways && waitAlways instanceof Promise)
+            waitAlways
               .then(() => {
                 ClearCustomInterval(backupInterval);
                 return resolve(null);
               })
-              // eslint-disable-next-line no-console
-              .catch(console.warn);
+              .catch(() => {});
         }, 300);
       }, 1e3);
     });
   };
 
-  return Promise.race(iKey.split(', ').map(LocalWaitUntilSignleElem));
+  return Promise.race(key.split(', ').map(LocalWaitUntilSignleElem));
 };
 
 /** @type {{ [customElementName: string]: HTMLElement }} */
 const CUSTOM_ELEMENTS = {};
 
 /**
- * @param {string} iLink
- * @param {number} iPriority
- * @param {string} [iModuleName]
+ * @param {string} link
+ * @param {number} priority
+ * @param {string} [moduleName]
  */
-const AddStyle = (iLink, iPriority, iModuleName = '') => {
+const AddStyle = (link, priority, moduleName = '') => {
   const stylesNode = document.createElement('link');
-  stylesNode.setAttribute('data-priority', iPriority);
+  stylesNode.setAttribute('data-priority', priority);
   stylesNode.setAttribute('data-author', 'serguun42');
   stylesNode.setAttribute('rel', 'stylesheet');
-  stylesNode.setAttribute('href', iLink);
+  stylesNode.setAttribute('href', link);
 
-  if (iModuleName) {
+  if (moduleName) {
     WaitForElement('body').then((body) => {
-      if (body) body.classList.add(`s42-${iModuleName.replace(/^osnova_/, '').replace(/_/g, '-')}`);
+      if (body) body.classList.add(`s42-${moduleName.replace(/^osnova_/, '').replace(/_/g, '-')}`);
     });
   }
 
-  WaitForElement(`#container-for-custom-elements-${iPriority}`).then(
+  WaitForElement(`#container-for-custom-elements-${priority}`).then(
     /** @param {HTMLElement} containerToPlace */ (containerToPlace) => {
       if (!containerToPlace) return;
 
       containerToPlace.appendChild(stylesNode);
-      CUSTOM_ELEMENTS[iLink] = stylesNode;
+      CUSTOM_ELEMENTS[link] = stylesNode;
     }
   );
 };

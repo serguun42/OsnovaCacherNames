@@ -17,7 +17,7 @@ All [CSS and other resources](./resources) could be deployed to production serve
 ## Development
 
 1. Install all dependencies – `npm i`
-2. Build userscript in [watch mode](https://webpack.js.org/configuration/watch/) – `npm run dev`
+2. Build userscript in [watch mode](https://webpack.js.org/configuration/watch/) – `npm run dev`, output to `dev/osnova-cacher-names.user.js`
 3. Check project with ESLint – `npm run lint`
 
 ## Info

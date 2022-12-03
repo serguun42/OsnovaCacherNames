@@ -1,17 +1,17 @@
 {
 	"name": "Osnova Cacher Names",
-	"version": "3.6.0 (2022-12-01)",
+	"version": "**replace with version from src/config/sites.js and date**",
 	"author": "serguun42, qq",
 	"icon": "https://cacher.serguun42.ru/dtf/img/dtf/icons/round/256x256.png",
 	"icon64": "https://cacher.serguun42.ru/dtf/img/dtf/icons/round/64x64.png",
 	"match": ["https://tjournal.ru/*", "https://dtf.ru/*"],
-	"updateURL": "https://serguun42.ru/tampermonkey/osnova-cacher-names/osnova-cacher-names.meta.js",
-	"downloadURL": "https://serguun42.ru/tampermonkey/osnova-cacher-names/osnova-cacher-names.user.js",
+	"updateURL": "**replace with URL from src/config/sites.js**",
+	"downloadURL": "**replace with URL from src/config/sites.js**",
 	"run-at": "document-end",
 	"grant": "none",
 	"namespace": "https://names-cacher.serguun42.ru/",
-	"license": "https://creativecommons.org/licenses/by-nc/4.0/legalcode",
-	"description": "Previous user's names from TJ Cache by qq (Rebuild by serguun42)",
+	"license": "GNU GPL v3",
+	"description": "Previous users' names from Osnova Names Cacher",
 	"homepage": "https://dtf.ru/tag/osnovanamescacher",
 	"supportURL": "https://dtf.ru/u/30364"
 }
