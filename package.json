@@ -1,6 +1,6 @@
 {
   "name": "osnova-cacher-names",
-  "version": "4.0.0",
+  "version": "4.0.1",
   "description": "Userscript bringing users' previous names to Osnova platform.",
   "main": "webpack.config.js",
   "type": "commonjs",
@@ -27,7 +27,7 @@
   "homepage": "https://github.com/serguun42/OsnovaCacherNames#readme",
   "dependencies": {
     "@babel/preset-env": "^7.20.2",
-    "@serguun42/webpack-userscript-plugin": "^1.0.0",
+    "@serguun42/webpack-userscript-plugin": "^1.0.1",
     "autoprefixer": "^10.4.13",
     "babel-loader": "^9.1.0",
     "cssnano": "^5.1.14",
