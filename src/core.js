@@ -74,16 +74,27 @@ const WatchURLChange = () => {
 
 new MutationObserver((mutations) => {
   mutations.forEach((mutation) => {
-    const { addedNodes, removedNodes, target, nextSibling, previousSibling } = mutation;
-    const mutatedNodes = [...addedNodes, ...removedNodes, target, nextSibling, previousSibling];
+    const mutatedNodes = mutation.addedNodes;
+    if (!mutatedNodes?.length) return;
 
     mutatedNodes.forEach((mutatedNode) => {
       if (!(mutatedNode instanceof HTMLElement)) return;
 
       if (
-        ['comment', 'subsite-card', 'content-header', 'v-header', 'table__row', 'feed__chunk'].some((checkingClass) =>
-          mutatedNode.classList.contains(checkingClass)
-        )
+        [
+          'comment',
+          'comment__edited',
+          'comment__text',
+
+          'subsite-card',
+
+          'content-header',
+          'feed__chunk',
+
+          'v-header',
+
+          'table__row',
+        ].some((checkingClass) => mutatedNode.classList.contains(checkingClass))
       ) {
         CollectIDs();
         BuildTooltips();
